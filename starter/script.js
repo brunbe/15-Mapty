@@ -74,7 +74,13 @@ class App {
   #workouts = [];
 
   constructor() {
+    //Get user position
     this._getPosition();
+
+    //Get data from local storage
+    this._getLocalStorage();
+
+    //Attach event handlers
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField.bind(this));
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
@@ -108,6 +114,10 @@ class App {
 
     //Handling clicks on maps
     this.#map.on('click', this._showForm.bind(this));
+
+    this.#workouts.forEach(work => {
+      this._renderWorkoutMarker(work);
+    });
   }
   _showForm(mapE) {
     this.#mapEvent = mapE;
@@ -172,13 +182,14 @@ class App {
     }
     // Add new object to workout array
     this.#workouts.push(workout);
-    console.log(workout);
     // Render workout on map;
     this._renderWorkoutMarker(workout);
     //Render workout on list;
     this._renderWorkout(workout);
     // Clear input fields + hide form
     this._hideForm();
+    // Set local storage to all workouts
+    this._setLocalStorage();
   }
 
   //new marker:
@@ -246,7 +257,7 @@ class App {
   }
   _moveToPopup(e) {
     const workoutEl = e.target.closest('.workout');
-    console.log(workoutEl);
+    // console.log(workoutEl);
     if (!workoutEl) return;
 
     const workout = this.#workouts.find(
@@ -257,7 +268,39 @@ class App {
       animate: true,
       pan: { duration: 1 },
     });
+
+    // using the public interface
     workout.click();
+  }
+
+  _setLocalStorage() {
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+
+  _getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem('workouts'));
+    if (!data) return;
+    this.#workouts = data;
+    this.#workouts.forEach(work => {
+      this._renderWorkout(work);
+    });
+  }
+  reset() {
+    localStorage.removeItem('workouts');
+    location.reload();
   }
 }
 const app = new App();
+
+// ability to edit a workout;
+// ability to delete a workout;
+// ability to delete all workouts;
+// ability to sort workouts by a certain field;
+// Re-build objects coming from Local Storage;
+// create realistic error and confirmation messages;
+
+// position the map to show all workouts [very hard];
+// ability to draw lines and shapes instead of just points [very very hard];
+
+// Geocode location from coordinates ("Run in Faro, Portugal") [can only be done with async JS];
+// Display weather data for workout time and place [can only be done with async JS];
